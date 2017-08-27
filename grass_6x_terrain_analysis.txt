@@ -1,0 +1,130 @@
+
+# Generate terrain analysis of aspect and slope from NASA->INPE prepared files
+# Start Grass stand alone 6.4.x MSYS! (the M icon in win)
+# Set the location as GSDB_apoio
+#This is script based and not python based yet
+
+# Check a function help
+
+g.list help
+
+# List rasters in working directory 
+
+g.list rast
+
+# How to clean a files list
+
+# f== force the action
+
+# Removing all rasters just for fun
+
+g.remove -f rast=22S48_ZN_WGS_utm_23S_slopasp_aspect
+g.remove -f rast=22S48_ZN_WGS_utm_23S_watershed_basin_02500
+g.remove -f rast=22S48_ZN_WGS_utm_23S_watershed_basin_02500_2
+g.remove -f rast=22S48_ZN_WGS_utm_23S_watershed_basin_02500_3
+g.remove -f rast=22S48_ZN_WGS_utm_23S_watershed_basin_02500_4
+g.remove -f rast=22S48_ZN_WGS_utm_23S_watershed_basin_10000
+g.remove -f rast=22S48_ZN_WGS_utm_23S_watershed_stream
+g.remove -f rast=22S48_ZN_WGS_utm_23S_slopasp_slope
+
+# All rasters removed
+
+g.list rast # no raster files available in current mapset :)
+g.list vect # is there a vector somewhere?
+
+# Then tou can easily reimport with r.in.gdal
+
+##########################################
+
+# Set directory
+
+cd "D:\Disciplinas_PPG\Geotec_tools_EcoBiodiv2017_comp\Pratica08_Grass_analise_terreno"
+
+# List files in directory
+
+ls
+
+r.in.gdal --help
+
+# Open a raster file, no space between "=" and file name. Output file of command is necessary, inside grass (in grass world).
+# Note that you do not need to put an object name. It is not R, it is GRASS man!
+# That is what people mean when they say that grass is action-oriented and not object oriented.
+
+r.in.gdal input=22S48_ZN_WGS_utm_23S.tif output=22S48_ZN_WGS_utm_23S -o --o
+
+# Checking
+
+g.list rast
+
+# Checking region, with no printing in screen == -p
+
+g.region -p
+
+# Note that the resolution is 29, almost 30 m!
+
+# If you need to make a fool of someone, you will. Everybody does!
+# Grass is fantastic, easily allowing a subset for test, without any change in real data.
+# Good for testing huge scripts. G.region can save a lot of time.
+
+# Let´s ask grass 
+# Checking your subregion (if you have a subregion, insert here)
+
+g.region rast = 22S48_ZN_WGS_utm_23S
+
+
+# Setting colors for the map
+
+r.colors map = 22S48_ZN_WGS_utm_23S color=elevation
+
+# As usual manners, you just re-affirm that your g.region is this one:
+
+g.region rast = 22S48_ZN_WGS_utm_23S
+
+#Determining coordinates for g.region for a new region of interest
+
+g.region n = 7505000 s = 7490000 w = 220000 e = 240000
+
+# Checking your new region. Note that rows and columns change, but resolution is pratically the same here.
+
+g.region -p
+
+# If I want to run a test with coarser resolution, choose the coordinates or use a mask. 
+# Note that you have less cells and it is good for testing loops.
+
+g.region res=60 -p
+
+#Going back
+
+g.region res=30 -p
+
+# A pixel does not need to be perfectly square.
+
+# Note that now we have a input and output that makes sense
+# Note that the name keeps memory of the command used (r.slope.aspect)
+
+r.slope.aspect 	elevation=22S48_ZN_WGS_utm_23S slope=22S48_ZN_WGS_utm_23S_slopasp_slope aspect=22S48_ZN_WGS_utm_23S_slopasp_aspect --o
+
+# Go in the gui and add the slope raster just created. 
+# Note that it was made in a smaller and specific region
+
+# Generating the accumulated flow, considering the contribution of flow, and giving the right name to the output file
+
+r.watershed elevation=22S48_ZN_WGS_utm_23S accumulation=22S48_ZN_WGS_utm_23S_watershed_accumulation --o
+
+# Generating other rasters for basins. Contribution threshold of contribution. 
+# The theshold will be the basis distance for quantifying the contribution above pixels will be counted as "flowing down".
+# Take a look on the divisions created. 
+
+r.watershed elevation=22S48_ZN_WGS_utm_23S basin=22S48_ZN_WGS_utm_23S_watershed_basin_02500 threshold=2500 --o
+r.watershed elevation=22S48_ZN_WGS_utm_23S basin=22S48_ZN_WGS_utm_23S_watershed_basin_05000 threshold=5000 --o
+r.watershed elevation=22S48_ZN_WGS_utm_23S basin=22S48_ZN_WGS_utm_23S_watershed_basin_10000 threshold=10000 --o
+
+# Stream function: you can think on that as drainage net to start. Then think about APPs (permanent protecting areas) to put around them.
+
+r.watershed elevation=22S48_ZN_WGS_utm_23S stream=22S48_ZN_WGS_utm_23S_watershed_stream_02000 threshold=2000 --o
+
+r.colors map=22S48_ZN_WGS_utm_23S_slopasp_aspect  color=grey
+
+r.colors map=22S48_ZN_WGS_utm_23S color=etopo2
+
+############################################################## 
