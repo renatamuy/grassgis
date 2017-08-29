@@ -1,0 +1,7 @@
+# Python in grass from C: to D:
+
+cd /D d:\
+
+cd "D:\myrightfileforgodsake"
+
+python yourgoodcode.py
