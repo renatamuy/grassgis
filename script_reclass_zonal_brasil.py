@@ -1,38 +1,31 @@
+#----------------------------------------------------------------------------------------------------------------------
+'''Script for Mapbiomas Collection 2
+ Renata Muylaert and Bernardo Niebuhr
+ Application: Get Mosaic of Mapbiomas collection 2 and reclass it, preparing for calculation of landscape metrics'''
+#----------------------------------------------------------------------------------------------------------------------
+
 # Import modules
 import os
 import grass.script as grass
+import math
 
-
+#check current dir
 os.getcwd()
 
 datadir = r'F:\__data\muylaert\___BASES\mapbiomas_30m'
 outputdir = r'F:\__data\muylaert\___BASES\outputs'
-
        
 # Change dir
 os.chdir(datadir)
 
-#test
+# test
 year = '2000'
 
 # Read all files and directories inside the folder, and transform them to a python list
 # Each element of the list will be a string element
 files = os.listdir(datadir)
 
-
-# For each file, check whether it is a .tif, print its name and import into GRASS
-
-for i in files:
-  
-  if i[-8:] == year+'.tif':
-    print i
-    name = i.replace('.tif', '') # define the name of the map inside GRASS without '.tif'
-    
-    # Import map
-    grass.run_command('r.in.gdal', input=i, output=name, overwrite = True)
-  
-    '''FAZER LISTA COM NAMESSSSS'''
-
+ 
 # Suppose we are going to gather all maps inside a mapset
 map_list = grass.list_grouped('rast', pattern = '*'+year)['PERMANENT']
 
@@ -40,6 +33,7 @@ map_list = grass.list_grouped('rast', pattern = '*'+year)['PERMANENT']
 grass.run_command('g.region', raster = map_list, flags = 'p') # the flag -p shows the region after defining it
 
 # Reclassiy MapBiomas Forest and Silviculture
+
 reclass_legend_for = ['1 thru 8 = 1 forest', 
                       '*        = 0']
 
@@ -66,50 +60,53 @@ for i in reclass_legend_euca:
     
 reclass_file.close()
 
-#Checking txt files
+# Checking txt files generated
 
 fileextensions = ('.txt')
 for filename in os.listdir(os.curdir):
     if filename.endswith(fileextensions):
        print(filename)
 
+# Set range up to 2016
+years= range(2000, 2017) 
+number_string = ''.join([str(x) for x in years])
+str(years)
 
-# Reclassify
-# Forest
+del name
+del year
 del i
 
-#Botar em um for
-names = grass.parse_command("g.list", _type="rast")
-grass.run_command('g.remove', raster="MATAATLANTICA_2012")
+os.chdir(datadir)
+ # For each file, check whether it is a .tif, print its name and import into GRASS
+for i in files:
+  for year in years:
+    year = str(year)
+    if i[-8:] == year+'.tif':
+      name_aux = i.replace('.tif', '') # define the name of the map inside GRASS without '.tif'
+      name = name_aux.replace('1km_', '')
+      # Import map
+      grass.run_command('r.in.gdal', input=i, output=name, overwrite = True)
+      # Forest
+      grass.run_command('r.reclass', input=name, output='BR_'+year+'_forest_1a8', rules = file_name_for, overwrite = True)
+      # Euca
+      grass.run_command('r.reclass', input=name, output='BR_'+year+'_euca_9', rules = file_name_euca, overwrite = True)
+      
+      # Export
+      os.chdir(outputdir)
+      grass.run_command('r.out.gdal', input='BR_'+year+'_forest_1a8', output='BR_'+year+'_forest_1a8'+'.tif')
+      grass.run_command('r.out.gdal', input='BR_'+year+'_euca_9', output='BR_'+year+'_euca_9'+'.tif')
+      print(name)
+      print i
+      print year
+      os.chdir(datadir)
 
-for i in NAMES:
-    os.chdir(datadir)
-    grass.run_command('r.reclass', input=name, output='BR_'+year+'_forest_1a8', rules = file_name_for, overwrite = True)
-# Euca
-    grass.run_command('r.reclass', input=name, output='BR_'+year+'_euca_9', rules = file_name_euca, overwrite = True)
 
-# Can I Change dir INSIDE THE LOOP?
+#----------------------------------------------------------------------------------
 
-os.chdir(outputdir)
+'''Building the rest'''
+#check current dir
+os.getcwd()
 
-grass.run_command('r.out.gdal', input='BR_'+year+'_forest_1a8', output='BR_'+year+'_forest_1a8'+'.tif', type=Byte)
-   
-grass.run_command('r.out.gdal', input='BR_'+year+'_euca_9', output='BR_'+year+'_euca_9'+'.tif', type=Byte)
-    
-
-############################
-#area flor
-#forest.sum * 1000*1000/10000
-#grass.run_command('v.rast.stats', map=munic_teste, raster='BR_'+year+'_forest_1a8', column_prefix=forest method=sum [percentile=integer]
-
-###################
-#r.out.gdal input=BR_2012_mask out=BR_2012_mask type=Byte
-
-# Import municipalities of Brazil
-#grass.run_command('v.in.ogr', input='malha_mun_13_albers_area.shp', output='malha_mun_13_albers_area', overwrite = True)
-
-# Define region based on shapefile of municipalities
-#grass.run_command('g.region', vector = 'malha_mun_13_albers_area', res = 5000, flags = 'ap') # the flag -p shows the region after defining it
 
 
 
