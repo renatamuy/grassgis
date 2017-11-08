@@ -1,0 +1,10 @@
+# Script to export 
+
+r.in.gdal
+
+# Choose vector file to activate mask just in "Vector" tab
+
+r.mask
+
+# Export 
+r.out.gdal input=chirps_ampl_1993@petar_mapset output=C:\Users\renatamuy\Desktop\chirps_mask_petar format=GTiff
