@@ -1,0 +1,10 @@
+grass.run_command('g.remove', type='raster', name=name, flags ='f')
+
+#Export
+
+#Outra coisa que pode ajudar a usar o arquivo fora do GRASS é, caso ele seja um float (cada pixel tem valor real), exportar com a opção type=Float32 (ao inves de float64, ou Int16 ao inves de Int32, se for inteiro; isso reduz o numero de casas decimais ou informacao em cada pixel, e reduz o tamanho do arquivo).
+#Ou ainda, para varias aplicacoes, vc pode usar o r.mapcalc para transformar o valor dos pixels em inteiro (exemplo, se varia entre 0 e 1, multiplicar por 100 e transformar em inteiro) - isso tb reduz o tamanho dos mapas...
+#Mas se for binario, nao tem muito jeito mesmo, só o macete de comprimir...
+
+
+##grass.run_command('r.out.gdal', createopt="TFW=YES,COMPRESS=DEFLATE"
